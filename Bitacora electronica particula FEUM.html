@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bitácora FEUM – Partículas microscópicas (V7q – Final)</title>
+  <!-- TailwindCSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @media print {
+      .no-print { display: none !important; }
+      .print\:block { display: block !important; }
+      .page-break { page-break-after: always; }
+      /* Mantener tablas compactas en PDF */
+      table { page-break-inside: avoid; }
+      canvas { border: 1px solid #777; }
+    }
+    /* Canvas firmas */
+    .sig-canvas { border: 1px dashed #94a3b8; background: #fff; }
+    /* Tabla responsive simple */
+    .tbl th, .tbl td { border: 1px solid #e5e7eb; padding: 6px 8px; }
+  </style>
+</head>
+<body class="bg-gray-50 text-slate-800">
+  <!-- Header -->
+  <header class="bg-white shadow-sm">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <img id="alsLogo" src="https://alsglobal.sharepoint.com/sites/Marketing/BrandGuidelines/Downloads/Logo/JPG/2x/RGB-ALS-LogoCircle-Blue@2x-100.jpg" alt="ALS Logo" class="h-10 w-10 object-contain" />
+        <div>
+          <h1 class="text-xl font-semibold">Bitácora FEUM – Partículas microscópicas</h1>
+          <p class="text-xs text-slate-500">Versión: <span id="ver">V7q-Final</span> • Estado: <span id="estadoLabel" class="font-medium">Abierta</span></p>
+        </div>
+      </div>
+      <div class="text-xs text-right">
+        <div>Sello actual (SHA-256): <span id="hash" class="font-mono text-[10px] break-all" data-field readonly></span></div>
+        <div>Cadena (último hash): <span id="chain" class="font-mono text-[10px] break-all" data-field readonly></span></div>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-6">
+    <!-- Controles principales -->
+    <section class="no-print mb-4">
+      <div class="flex flex-wrap gap-2">
+        <button id="btnNueva" class="px-3 py-2 rounded-lg bg-slate-800 text-white">Nueva bitácora</button>
+        <button id=\"btnHistorial\" class=\"px-3 py-2 rounded-lg bg-slate-700 text-white\">Archivados</button>
+        <button id=\"btnArchivar\" class=\"px-3 py-2 rounded-lg bg-fuchsia-600 text-white\">Archivar folio</button>
+        <button id="btnGuardar" class="px-3 py-2 rounded-lg bg-emerald-600 text-white">Guardar</button>
+        <button id="btnCargar" class="px-3 py-2 rounded-lg bg-emerald-700 text-white">Cargar</button>
+        <button id="btnLimpiar" class="px-3 py-2 rounded-lg bg-amber-500 text-white">Limpiar</button>
+        <button id="btnBloquear" class="px-3 py-2 rounded-lg bg-indigo-600 text-white">Bloquear y firmar</button>
+        <button id="btnCorregir" class="px-3 py-2 rounded-lg bg-indigo-800 text-white">Nueva corrección</button>
+        <button id="btnExport" class="px-3 py-2 rounded-lg bg-sky-600 text-white">Exportar JSON</button>
+        <button id="btnPrint" class="px-3 py-2 rounded-lg bg-slate-600 text-white">Imprimir / PDF</button>
+      </div>
+    </section>
+
+    <!-- Identificación -->
+    <section class="bg-white rounded-xl shadow-sm p-4 mb-4">
+      <h2 class="text-lg font-semibold mb-3">1) Identificación</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <label class="text-sm">Folio
+          <input id="folio" data-field class="mt-1 w-full rounded-md border p-2" type="text" />
+        </label>
+        <label class="text-sm">Fecha informativa
+          <input id="f_informativa" data-field class="mt-1 w-full rounded-md border p-2" type="date" />
+        </label>
+        <div class="text-sm">Prueba
+          <input id="prueba" data-field class="mt-1 w-full rounded-md border p-2" type="text" value="Partículas microscópicas" />
+        </div>
+        <label class="text-sm">Cliente
+          <input id="cliente" data-field class="mt-1 w-full rounded-md border p-2" type="text" />
+        </label>
+        <label class="text-sm">Producto
+          <input id="producto" data-field class="mt-1 w-full rounded-md border p-2" type="text" />
+        </label>
+        <div class="text-sm">Estado (solo lectura)
+          <input id="estado" class="mt-1 w-full rounded-md border p-2 bg-slate-50" type="text" value="Abierta" readonly />
+        </div>
+      </div>
+    </section>
+
+    <!-- Inicio -->
+    <section class="bg-white rounded-xl shadow-sm p-4 mb-4">
+      <h2 class="text-lg font-semibold mb-3">2) Inicio</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <label class="text-sm">Fecha inicio
+          <div class="flex gap-2 mt-1">
+            <input id="fecha_inicio" data-field class="flex-1 rounded-md border p-2 bg-slate-50" type="text" readonly />
+            <button id="btnMarkInicioDia" class="no-print px-2 rounded-md bg-slate-200">Marcar inicio (hoy)</button>
+          </div>
+        </label>
+        <label class="text-sm">Hora inicio
+          <div class="flex gap-2 mt-1">
+            <input id="hora_inicio" data-field class="flex-1 rounded-md border p-2 bg-slate-50" type="text" readonly />
+            <button id="btnMarkInicioHora" class="no-print px-2 rounded-md bg-slate-200">Marcar hora (ahora)</button>
+          </div>
+        </label>
+      </div>
+    </section>
+
+    <!-- Materiales -->
+    <section class="bg-white rounded-xl shadow-sm p-4 mb-4">
+      <h2 class="text-lg font-semibold mb-3">3) Materiales</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Membrana -->
+        <div class="border rounded-xl p-3">
+          <h3 class="font-medium">Membrana para filtración</h3>
+          <p class="text-sm text-slate-600">Tamaño de poro: <span class="font-medium">0.22 µm</span></p>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
+            <label class="text-sm">Lote
+              <input id="insumo_membrana_lote" data-field class="mt-1 w-full rounded-md border p-2" type="text" />
+            </label>
+            <label class="text-sm">Caducidad
+              <input id="insumo_membrana_cad" data-field class="mt-1 w-full rounded-md border p-2" type="date" />
+            </label>
+          </div>
+        </div>
+        <!-- Agua inyectable -->
+        <div class="border rounded-xl p-3">
+          <h3 class="font-medium">Agua inyectable libre de partículas</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
+            <label class="text-sm">Clave
+              <input id="reactivo_agua_clave" data-field class="mt-1 w-full rounded-md border p-2" type="text" />
+            </label>
+            <label class="text-sm">Caducidad
+              <input id="reactivo_agua_cad" data-field class="mt-1 w-full rounded-md border p-2" type="date" />
+            </label>
+          </div>
+          <p class="text-xs text-slate-600 mt-2 italic">Agua inyectable previamente filtrada con membrana de poro de 0.22 µm.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Blanco -->
+    <section class="bg-white rounded-xl shadow-sm p-4 mb-4">
+      <h2 class="text-lg font-semibold mb-3">4) Blanco (criterio ambiental/material)</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <label class="text-sm">Conteo ≥10 μm (máx. 10)
+          <input id="blanco_10" data-field class="mt-1 w-full rounded-md border p-2" type="number" step="1" min="0" />
+        </label>
+        <label class="text-sm">Conteo ≥25 μm (máx. 2)
+          <input id="blanco_25" data-field class="mt-1 w-full rounded-md border p-2" type="number" step="1" min="0" />
+        </label>
+      </div>
+      <p id="msgBlanco" class="mt-2 text-sm"></p>
+    </section>
+
+    <!-- Preparación y Sonicación -->
+    <section class="bg-white rounded-xl shadow-sm p-4 mb-4">
+      <h2 class="text-lg font-semibold mb-3">5) Preparación & sonicación</h2>
+      <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
+        <label class="text-sm">n (muestras)
+          <input id="pool_n" data-field class="mt-1 w-full rounded-md border p-2" type="number" step="1" min="1" value="1"/>
+        </label>
+        <label class="text-sm">v (mL por muestra)
+          <input id="pool_v" data-field class="mt-1 w-full rounded-md border p-2" type="number" step="0.01" min="0" value="5"/>
+        </label>
+        <label class="text-sm">Vt (mL)
+          <input id="pool_vt" data-field class="mt-1 w-full rounded-md border p-2 bg-slate-50" type="number" step="0.01" readonly />
+        </label>
+        <label class="text-sm">P̄ ≥10 μm
+          <input id="p_avg_10" data-field class="mt-1 w-full rounded-md border p-2" type="number" step="0.01" min="0"/>
+        </label>
+        <label class="text-sm">P̄ ≥25 μm
+          <input id="p_avg_25" data-field class="mt-1 w-full rounded-md border p-2" type="number" step="0.01" min="0"/>
+        </label>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
+        <label class="text-sm">Volumen alícuota VA (mL)
+          <input id="va" data-field class="mt-1 w-full rounded-md border p-2" type="number" step="0.01" min="0.01" value="5.00"/>
+        </label>
+        <div class="text-sm">Sonicación – Inicio
+          <div class="flex gap-2 mt-1">
+            <input id="t_son_i" data-field class="flex-1 rounded-md border p-2" type="datetime-local"/>
+            <button id="btnSonIni" class="no-print px-2 rounded-md bg-slate-200">Marcar (ahora)</button>
+          </div>
+        </div>
+        <div class="text-sm">Sonicación – Fin
+          <div class="flex gap-2 mt-1">
+            <input id="t_son_f" data-field class="flex-1 rounded-md border p-2" type="datetime-local"/>
+            <button id="btnSonFin" class="no-print px-2 rounded-md bg-slate-200">Marcar (ahora)</button>
+          </div>
+        </div>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
+        <label class="text-sm">Duración (s)
+          <input id="t_son_dur" data-field class="mt-1 w-full rounded-md border p-2 bg-slate-50" type="number" readonly />
+        </label>
+        <label class="text-sm">Velocidad campana (m/s)
+          <input id="vel_campana" data-field class="mt-1 w-full rounded-md border p-2" type="number" step="0.01" min="0" />
+        </label>
+        <div class="text-sm">Estatus por velocidad
+          <input id="opsChip" data-field class="mt-1 w-full rounded-md border p-2 bg-slate-50" type="text" readonly />
+        </div>
+      </div>
+    </section>
+
+    <!-- Resultados -->
+    <section class="bg-white rounded-xl shadow-sm p-4 mb-4">
+      <h2 class="text-lg font-semibold mb-3">6) Resultados</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <label class="text-sm">Resultado final ≥10 μm (por envase)
+          <input id="res_10_final" data-field class="mt-1 w-full rounded-md border p-2 bg-slate-50" type="number" step="0.01" readonly />
+        </label>
+        <label class="text-sm">Resultado final ≥25 μm (por envase)
+          <input id="res_25_final" data-field class="mt-1 w-full rounded-md border p-2 bg-slate-50" type="number" step="0.01" readonly />
+        </label>
+      </div>
+      <div id="boxCumplimiento" class="mt-3 p-3 rounded-lg border text-sm">
+        <div>🔎 Criterio de aceptación: ≤6000 (≥10 μm) y ≤600 (≥25 μm)</div>
+        <div>Estado: <span id="resultadoChip" class="font-semibold"></span></div>
+      </div>
+    </section>
+
+    <!-- Equipos e instrumentos -->
+    <section class="bg-white rounded-xl shadow-sm p-4 mb-4">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-lg font-semibold">7) Equipos e instrumentos</h2>
+        <button id="btnAddEq" class="no-print px-3 py-2 rounded-lg bg-slate-200">+ Agregar fila</button>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm tbl">
+          <thead class="bg-slate-100">
+            <tr>
+              <th>#</th>
+              <th>Equipo</th>
+              <th>Clave (visible)</th>
+              <th>Clave (oculta)</th>
+              <th>Servicio</th>
+              <th>Fecha servicio</th>
+              <th>Próxima calificación</th>
+              <th>Estatus</th>
+            </tr>
+          </thead>
+          <tbody id="equipBody"></tbody>
+        </table>
+      </div>
+      <p class="mt-2 text-xs text-slate-500">* Para filas con prefijo fijo, la clave oculta se forma automáticamente (p. ej. CFL- + sufijo).</p>
+    </section>
+
+    <!-- Firmas -->
+    <section class="bg-white rounded-xl shadow-sm p-4 mb-4">
+      <h2 class="text-lg font-semibold mb-3">8) Firmas</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label class="text-sm">Analista
+            <input id="analista" data-field class="mt-1 w-full rounded-md border p-2" type="text" />
+          </label>
+          <div class="mt-2 text-sm">Fecha/Hora fin de análisis
+            <div class="flex gap-2 mt-1">
+              <input id="fin_analisis" data-field class="flex-1 rounded-md border p-2" type="datetime-local" />
+              <button id="btnFinAnalisis" class="no-print px-2 rounded-md bg-slate-200">Marcar firma (ahora)</button>
+            </div>
+          </div>
+          <div class="mt-3">
+            <canvas id="signAnalista" width="420" height="120" class="sig-canvas rounded-md"></canvas>
+            <div class="mt-2 flex gap-2">
+              <button data-clear="#signAnalista" class="no-print px-2 rounded-md bg-slate-200">Limpiar</button>
+            </div>
+          </div>
+        </div>
+        <div>
+          <label class="text-sm">Revisor
+            <input id="revisor" data-field class="mt-1 w-full rounded-md border p-2" type="text" />
+          </label>
+          <div class="mt-2 text-sm">Fecha/Hora revisión
+            <div class="flex gap-2 mt-1">
+              <input id="rev_dt" data-field class="flex-1 rounded-md border p-2" type="datetime-local" />
+              <button id="btnRev" class="no-print px-2 rounded-md bg-slate-200">Marcar firma (ahora)</button>
+            </div>
+          </div>
+          <div class="mt-3">
+            <canvas id="signRevisor" width="420" height="120" class="sig-canvas rounded-md"></canvas>
+            <div class="mt-2 flex gap-2">
+              <button data-clear="#signRevisor" class="no-print px-2 rounded-md bg-slate-200">Limpiar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Observaciones & Auditoría -->
+    <section class="bg-white rounded-xl shadow-sm p-4 mb-10">
+      <h2 class="text-lg font-semibold mb-3">9) Observaciones y auditoría</h2>
+      <div>
+        <label class="text-sm">Observaciones (se llenan automáticamente con advertencias)
+          <textarea id="observaciones" class="mt-1 w-full rounded-md border p-2" rows="3" readonly></textarea>
+        </label>
+      </div>
+      <div class="mt-3">
+        <h3 class="font-medium mb-2">Historial (audit)</h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm tbl">
+            <thead class="bg-slate-100">
+              <tr>
+                <th>Fecha/Hora</th>
+                <th>Usuario</th>
+                <th>Acción</th>
+                <th>Detalle</th>
+                <th>Hash</th>
+              </tr>
+            </thead>
+            <tbody id="auditBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal: Historial de folios archivados -->
+  <div id=\"modalArchivados\" class=\"fixed inset-0 bg-black/40 hidden items-start justify-center z-50\">
+    <div class=\"bg-white w-[min(1000px,95vw)] mt-10 rounded-2xl shadow-xl p-4\">
+      <div class=\"flex items-center justify-between mb-3\">
+        <h3 class=\"text-lg font-semibold\">Historial de folios archivados</h3>
+        <button id=\"btnCloseArchivados\" class=\"px-3 py-1 rounded-lg bg-slate-200\">Cerrar</button>
+      </div>
+      <!-- Filtros -->
+      <div class=\"grid grid-cols-1 md:grid-cols-4 gap-2 mb-3\">
+        <label class=\"text-sm\">Cliente
+          <input id=\"filtroCliente\" class=\"mt-1 w-full rounded-md border p-2\" type=\"text\" placeholder=\"Buscar por cliente\" />
+        </label>
+        <label class=\"text-sm\">Desde (fecha archivado)
+          <input id=\"filtroDesde\" class=\"mt-1 w-full rounded-md border p-2\" type=\"date\" />
+        </label>
+        <label class=\"text-sm\">Hasta (fecha archivado)
+          <input id=\"filtroHasta\" class=\"mt-1 w-full rounded-md border p-2\" type=\"date\" />
+        </label>
+        <div class=\"flex items-end\">
+          <button id=\"btnLimpiarFiltros\" class=\"w-full px-3 py-2 rounded-lg bg-slate-200\">Limpiar filtros</button>
+        </div>
+      </div>
+      <div class=\"overflow-x-auto\">
+        <table class=\"w-full text-sm tbl rounded-lg\">
+          <thead class=\"bg-slate-100\">
+            <tr>
+              <th>Archivado</th>
+              <th>Folio</th>
+              <th>Cliente</th>
+              <th>Producto</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id=\"archiveBody\">
+            <tr><td colspan=\"6\" class=\"text-center text-slate-500\">No hay folios archivados aún.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ======= Utilidades =======
+    const VERSION = 'V7q-Final';
+    const STORAGE_KEY = 'BV_FEUM_V7Q';
+    const STORAGE_ARCHIVE = STORAGE_KEY + ':ARCHIVE';
+    const $ = (sel) => document.querySelector(sel);
+    const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+
+    function nowLocalISO(dt = new Date()) {
+      const off = dt.getTimezoneOffset();
+      const local = new Date(dt.getTime() - off * 60000);
+      return local.toISOString().slice(0, 19);
+    }
+    function ymd(d = new Date()) {
+      return nowLocalISO(d).slice(0, 10);
+    }
+    function timeHM(d = new Date()) {
+      return nowLocalISO(d).slice(11, 16);
+    }
+    function toNumber(v) {
+      const n = Number(v);
+      return Number.isFinite(n) ? n : null;
+    }
+    function round2(n) {
+      return n == null ? null : Math.round(n * 100) / 100;
+    }
+
+    // SHA-256 con Web Crypto
+    async function sha256(text) {
+      const enc = new TextEncoder().encode(text);
+      const buf = await crypto.subtle.digest('SHA-256', enc);
+      const bytes = Array.from(new Uint8Array(buf));
+      return bytes.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    // ======= Auditoría =======
+    const audit = [];
+    function pushAudit(action, detail = '') {
+      const when = new Date();
+      const entry = {
+        when: `${ymd(when)} ${timeHM(when)}:00`,
+        user: $('#analista')?.value?.trim() || 'local-user',
+        action,
+        detail,
+        hash: $('#hash').textContent || ''
+      };
+      audit.push(entry);
+      renderAudit();
+      // Actualiza cadena con último hash
+      $('#chain').textContent = entry.hash;
+    }
+    function renderAudit() {
+      const tbody = $('#auditBody');
+      tbody.innerHTML = '';
+      for (const e of audit) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${e.when}</td><td>${escapeHtml(e.user)}</td><td>${escapeHtml(e.action)}</td><td>${escapeHtml(e.detail)}</td><td class="font-mono text-[10px] break-all">${e.hash}</td>`;
+        tbody.appendChild(tr);
+      }
+    }
+
+    function escapeHtml(str=''){
+      return str.replace(/[&<>\"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m]));
+    }
+
+    // ======= Recolección / Render de datos =======
+    function collectData() {
+      const obs = [];
+      // Toma solo elementos con data-field
+      const fields = $$('[data-field]');
+      const data = {};
+      for (const el of fields) {
+        const id = el.id || el.getAttribute('name');
+        if (!id) continue;
+        let val = null;
+        if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+          if (el.type === 'checkbox') val = el.checked;
+          else val = el.value || null;
+        } else {
+          val = el.textContent?.trim() || null;
+        }
+        data[id] = val;
+      }
+
+      // Firmas a dataURL
+      data.sign_analista = getCanvasDataURL('#signAnalista');
+      data.sign_revisor  = getCanvasDataURL('#signRevisor');
+
+      // Conversión numérica y cálculos
+      const n  = toNumber(data.pool_n);
+      const v  = toNumber(data.pool_v);
+      const VA = toNumber(data.va);
+      if (n != null && v != null) {
+        data.pool_vt = round2(n * v);
+        $('#pool_vt').value = data.pool_vt ?? '';
+      }
+
+      // Duración sonicación
+      if (data.t_son_i && data.t_son_f) {
+        const t1 = new Date(data.t_son_i);
+        const t2 = new Date(data.t_son_f);
+        const diff = Math.max(0, (t2 - t1) / 1000);
+        data.t_son_dur = Math.round(diff);
+        $('#t_son_dur').value = data.t_son_dur;
+      }
+
+      // Estatus por velocidad
+      const vel = toNumber(data.vel_campana);
+      data.opsChip = (vel != null && vel >= 0.36 && vel <= 0.54) ? 'Cumple' : 'No cumple';
+      $('#opsChip').value = data.opsChip;
+
+      // Resultados
+      const P10 = toNumber(data.p_avg_10);
+      const P25 = toNumber(data.p_avg_25);
+      const Vt  = toNumber(data.pool_vt);
+      if (P10 != null && VA != null && Vt != null && n != null && n > 0 && VA > 0) {
+        data.res_10_final = round2((P10 / VA) * (Vt / n));
+        $('#res_10_final').value = data.res_10_final;
+      } else { data.res_10_final = null; }
+      if (P25 != null && VA != null && Vt != null && n != null && n > 0 && VA > 0) {
+        data.res_25_final = round2((P25 / VA) * (Vt / n));
+        $('#res_25_final').value = data.res_25_final;
+      } else { data.res_25_final = null; }
+
+      // Cumplimientos
+      const blanco10 = toNumber(data.blanco_10);
+      const blanco25 = toNumber(data.blanco_25);
+      const blancoOK = (blanco10 != null && blanco25 != null && blanco10 <= 10 && blanco25 <= 2);
+      const resOK = (data.res_10_final != null && data.res_25_final != null && data.res_10_final <= 6000 && data.res_25_final <= 600);
+
+      $('#msgBlanco').textContent = blancoOK ? 'Blanco: Cumple' : 'Blanco: No cumple (≤10 y ≤2)';
+      $('#msgBlanco').className = 'mt-2 text-sm ' + (blancoOK ? 'text-emerald-700' : 'text-red-700');
+
+      const box = $('#boxCumplimiento');
+      const chip = $('#resultadoChip');
+      if (resOK) { box.classList.add('border-emerald-300','bg-emerald-50'); chip.textContent = 'Cumple'; chip.className = 'text-emerald-700 font-semibold'; }
+      else { box.classList.remove('border-emerald-300','bg-emerald-50'); chip.textContent = 'No cumple'; chip.className = 'text-red-700 font-semibold'; }
+
+      // Estatus equipos y reglas de fechas
+      applyEquipmentRules(data, obs);
+
+      // Estado (texto)
+      data.estado = $('#estado').value;
+
+      // Validación global
+      const validacion = {
+        blanco_cumple: !!blancoOK,
+        ops_cumple: data.opsChip === 'Cumple',
+        resultados_cumplen: !!resOK,
+        estado: data.estado
+      };
+
+      // Meta
+      const meta = {
+        version: VERSION,
+        logo_url: $('#alsLogo').src
+      };
+
+      // Sellos
+      const sellos = {
+        hash_sha256: $('#hash').textContent || null,
+        chain: $('#chain').textContent || null
+      };
+
+      // Observaciones
+      $('#observaciones').value = obs.join('\n');
+
+      return { meta, data, validacion, sellos, audit: [...audit], observaciones: obs };
+    }
+
+    function applyEquipmentRules(data, obs) {
+      const fechaInicio = $('#fecha_inicio').value || null;
+      const list = [];
+      $$('#equipBody tr').forEach((tr, idx) => {
+        const row = {};
+        const num = tr.dataset.idx;
+        const nombre = tr.querySelector('[data-role="nombre"]').value || '';
+        const suf = tr.querySelector('[data-role="clave_suf"]').value || '';
+        const claveOc = tr.querySelector('[data-role="clave_oc"]');
+        const servicio = tr.querySelector('[data-role="servicio"]').value || '';
+        const fserv = tr.querySelector('[data-role="fserv"]').value || '';
+        const fprox = tr.querySelector('[data-role="fprox"]').value || '';
+        let clavePrefix = tr.dataset.prefix || '';
+
+        // Clave oculta auto
+        const oc = (clavePrefix ? `${clavePrefix}${suf}` : (suf || ''));
+        claveOc.value = oc;
+
+        // Reglas fecha vs fecha_inicio
+        if (fechaInicio) {
+          if (fserv && fserv > fechaInicio) {
+            tr.querySelector('[data-role="fserv"]').value = fechaInicio;
+            obs.push(`Equipo ${idx+1}: fserv ajustado a fecha_inicio.`);
+          }
+          if (fprox && fprox <= fechaInicio) {
+            const d = new Date(fechaInicio);
+            d.setDate(d.getDate()+1);
+            const y = d.toISOString().slice(0,10);
+            tr.querySelector('[data-role="fprox"]').value = y;
+            obs.push(`Equipo ${idx+1}: fprox ajustado a día siguiente de inicio.`);
+          }
+        }
+
+        const fproxV = tr.querySelector('[data-role="fprox"]').value;
+        const est = tr.querySelector('[data-role="estatus"]');
+        if (fechaInicio && fproxV) {
+          est.value = (fproxV > fechaInicio) ? 'Vigente' : 'No vigente';
+        } else {
+          est.value = '';
+        }
+
+        list.push({
+          nombre,
+          clave: oc,
+          servicio,
+          fserv: tr.querySelector('[data-role="fserv"]').value || null,
+          fprox: tr.querySelector('[data-role="fprox"]').value || null,
+          estatus: est.value || null
+        });
+      });
+      // Copia al objeto data.eq
+      data.eq = list;
+    }
+
+    async function refreshHash() {
+      const snapshot = collectData();
+      const text = JSON.stringify(snapshot.data);
+      const h = await sha256(text);
+      $('#hash').textContent = h;
+    }
+
+    function renderFromData(payload) {
+      if (!payload) return;
+      const { data, audit: aud, sellos } = payload;
+      // Render simples
+      for (const [k, v] of Object.entries(data)) {
+        const el = document.getElementById(k);
+        if (!el) continue;
+        if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+          if (el.type === 'checkbox') el.checked = !!v;
+          else el.value = (v ?? '');
+        } else {
+          el.textContent = (v ?? '');
+        }
+      }
+      // Firmas
+      setCanvasDataURL('#signAnalista', data.sign_analista);
+      setCanvasDataURL('#signRevisor',  data.sign_revisor);
+
+      // Equipos
+      if (Array.isArray(data.eq)) {
+        $('#equipBody').innerHTML = '';
+        data.eq.forEach((row, i) => addEquipmentRow(row, i+1));
+      }
+
+      // Auditoría
+      if (Array.isArray(aud)) {
+        audit.length = 0;
+        audit.push(...aud);
+        renderAudit();
+      }
+
+      // Sellos
+      if (sellos?.hash_sha256) $('#hash').textContent = sellos.hash_sha256;
+      if (sellos?.chain) $('#chain').textContent = sellos.chain;
+
+      computeAll();
+    }
+
+    function computeAll() {
+      const _ = collectData();
+      refreshHash();
+      toggleGuardado();
+    }
+
+    function toggleGuardado(){
+      const snapshot = collectData();
+      const ok = snapshot.validacion.blanco_cumple;
+      $('#btnGuardar').disabled = !ok;
+      $('#btnGuardar').classList.toggle('opacity-50', !ok);
+      $('#btnGuardar').title = ok ? '' : 'Para guardar, el Blanco debe cumplir (≤10 y ≤2).';
+    }
+
+    // ======= Equipos =======
+    const EQUIP_PRESETS = [
+      { nombre: 'Campana de flujo laminar', prefix: 'CFL-' },
+      { nombre: 'Sistema medidor de partículas', prefix: 'SMP-' },
+      { nombre: 'Cronómetro', prefix: 'CRO-' },
+      { nombre: 'Bomba de filtración', prefix: 'BFI-' },
+      { nombre: 'Baño de ultrasonido', prefix: 'BUL-' },
+    ];
+
+    function addEquipmentRow(row={}, idx=null) {
+      const tbody = $('#equipBody');
+      const tr = document.createElement('tr');
+      const i = idx || (tbody.children.length + 1);
+      const preset = EQUIP_PRESETS[i-1] || { nombre: '', prefix: '' };
+
+      tr.dataset.idx = i;
+      tr.dataset.prefix = row.prefix ?? preset.prefix ?? '';
+
+      tr.innerHTML = `
+        <td class="text-center">${i}</td>
+        <td><input data-role="nombre" class="w-full border rounded p-1" value="${escapeHtml(row.nombre ?? preset.nombre ?? '')}"></td>
+        <td><input data-role="clave_suf" class="w-full border rounded p-1" value="${escapeHtml((row.clave||'').replace((tr.dataset.prefix||''),''))}" placeholder="sufijo o clave"></td>
+        <td><input data-role="clave_oc" class="w-full border rounded p-1 bg-slate-50" readonly></td>
+        <td><input data-role="servicio" class="w-full border rounded p-1" value="${escapeHtml(row.servicio ?? '')}"></td>
+        <td><input data-role="fserv" type="date" class="w-full border rounded p-1" value="${row.fserv ?? ''}"></td>
+        <td><input data-role="fprox" type="date" class="w-full border rounded p-1" value="${row.fprox ?? ''}"></td>
+        <td><input data-role="estatus" class="w-full border rounded p-1 bg-slate-50" readonly></td>
+      `;
+      tbody.appendChild(tr);
+      computeAll();
+      tr.querySelectorAll('input').forEach(inp => inp.addEventListener('input', computeAll));
+    }
+
+    // ======= Canvas firmas =======
+    function initSignatureCanvas(sel) {
+      const cvs = $(sel);
+      const ctx = cvs.getContext('2d');
+      let drawing = false, last = null;
+
+      function pos(e) {
+        const r = cvs.getBoundingClientRect();
+        const x = (e.touches ? e.touches[0].clientX : e.clientX) - r.left;
+        const y = (e.touches ? e.touches[0].clientY : e.clientY) - r.top;
+        return {x, y};
+      }
+      function start(e){ drawing = true; last = pos(e); e.preventDefault(); }
+      function move(e){ if(!drawing) return; const p = pos(e); ctx.beginPath(); ctx.moveTo(last.x,last.y); ctx.lineTo(p.x,p.y); ctx.lineWidth=2; ctx.lineCap='round'; ctx.stroke(); last=p; e.preventDefault(); }
+      function end(){ drawing = false; last = null; }
+
+      cvs.addEventListener('mousedown', start);
+      cvs.addEventListener('mousemove', move);
+      window.addEventListener('mouseup', end);
+      cvs.addEventListener('touchstart', start, {passive:false});
+      cvs.addEventListener('touchmove', move, {passive:false});
+      window.addEventListener('touchend', end);
+    }
+
+    function clearCanvas(sel){
+      const cvs = $(sel); const ctx = cvs.getContext('2d');
+      ctx.clearRect(0,0,cvs.width,cvs.height);
+      computeAll();
+    }
+
+    function getCanvasDataURL(sel){
+      const cvs = $(sel); if(!cvs) return null;
+      try { return cvs.toDataURL('image/png'); } catch { return null; }
+    }
+    function setCanvasDataURL(sel, dataURL){
+      const cvs = $(sel); if(!cvs || !dataURL) return;
+      const img = new Image();
+      img.onload = ()=>{ const ctx = cvs.getContext('2d'); ctx.clearRect(0,0,cvs.width,cvs.height); ctx.drawImage(img,0,0,cvs.width,cvs.height); };
+      img.src = dataURL;
+    }
+
+    // ======= Persistencia =======
+    function saveLocal(){
+      const payload = collectData();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+      pushAudit('Guardar', 'Guardado en localStorage');
+      computeAll();
+      alert('Bitácora guardada localmente.');
+    }
+    function loadLocal(){
+      const s = localStorage.getItem(STORAGE_KEY);
+      if (!s) { alert('No hay datos guardados.'); return; }
+      const payload = JSON.parse(s);
+      renderFromData(payload);
+      pushAudit('Cargar', 'Cargado desde localStorage');
+      computeAll();
+    }
+    function clearAll(){
+      if (!confirm('¿Limpiar todos los campos y firmas?')) return;
+      $('form'); // noop
+      // Limpia inputs data-field
+      $$('[data-field]').forEach(el=>{
+        if (el.tagName==='INPUT' || el.tagName==='TEXTAREA') {
+          if (el.type==='checkbox') el.checked = false; else if (el.readOnly) el.value = el.value; else el.value = '';
+        } else el.textContent='';
+      });
+      // Reset por defecto
+      $('#prueba').value = 'Partículas microscópicas';
+      $('#estado').value = 'Abierta';
+      $('#estadoLabel').textContent = 'Abierta';
+      // Firmas
+      clearCanvas('#signAnalista');
+      clearCanvas('#signRevisor');
+      // Equipos
+      $('#equipBody').innerHTML = '';
+      EQUIP_PRESETS.forEach((_,i)=> addEquipmentRow({}, i+1));
+      // Observaciones / auditoría parcial
+      $('#observaciones').value='';
+      pushAudit('Limpiar', 'Campos restablecidos');
+      computeAll();
+    }
+
+    function lockAndSign(){
+      $('#estado').value = 'Cerrada';
+      $('#estadoLabel').textContent = 'Cerrada';
+      // Bloquea edición
+      $$('input,textarea,button').forEach(el=>{
+        const id = el.id||'';
+        // Mantener botones esenciales activos
+        const allow = ['btnNueva','btnHistorial','btnCargar','btnExport','btnPrint','btnCorregir','btnArchivar'];
+        if (el.classList.contains('no-print') && !allow.includes(id)) el.disabled = true;
+        if (el.matches('[data-field]') && el.tagName==='INPUT' && el.type!=='button') el.readOnly = true;
+      });
+      pushAudit('Bloquear y firmar', 'Bitácora cerrada');
+      computeAll();
+    }
+
+    function reopenForCorrection(){
+      $('#estado').value = 'Abierta';
+      $('#estadoLabel').textContent = 'Abierta';
+      $$('input,textarea,button').forEach(el=>{
+        el.disabled = false; // reactiva
+        if (el.matches('[data-field]') && el.readOnly && !['hash','chain','pool_vt','t_son_dur','opsChip','res_10_final','res_25_final'].includes(el.id)) el.readOnly = false;
+      });
+      pushAudit('Nueva corrección', 'Se reabre para corrección controlada');
+      computeAll();
+    }
+
+    function exportJSON(){
+      const payload = collectData();
+      payload.exported_at = nowLocalISO();
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      const folio = $('#folio').value || 'bitacora';
+      a.download = `${folio}_BV_FEUM_V7q.json`;
+      a.click();
+      pushAudit('Exportar JSON', 'Descarga de archivo JSON');
+      computeAll();
+    }
+
+    function printDoc(){
+      window.print();
+      pushAudit('Imprimir/PDF', 'Impresión del documento');
+    }
+
+    // ======= Archivo de folios =======
+    function getArchiveList(){ try { return JSON.parse(localStorage.getItem(STORAGE_ARCHIVE)) || []; } catch { return []; } }
+    function setArchiveList(list){ localStorage.setItem(STORAGE_ARCHIVE, JSON.stringify(list)); }
+    function parseArchDate(s){ if(!s) return null; return new Date(s.replace(' ', 'T')); }
+    function currentFilters(){ return { cliente: (document.getElementById('filtroCliente')?.value||'').toLowerCase().trim(), desde: document.getElementById('filtroDesde')?.value||'', hasta: document.getElementById('filtroHasta')?.value||'' }; }
+    function matchesFilters(it){ const f = currentFilters(); if (f.cliente && !(it.cliente||'').toLowerCase().includes(f.cliente)) return false; const d = parseArchDate(it.archivado); if (f.desde){ const dmin = new Date(f.desde+'T00:00'); if (d && d < dmin) return false; } if (f.hasta){ const dmax = new Date(f.hasta+'T23:59:59'); if (d && d > dmax) return false; } return true; }
+    function renderArchive(){ const tbody = document.getElementById('archiveBody'); const list = getArchiveList().filter(matchesFilters); tbody.innerHTML = ''; if (!list.length){ const tr = document.createElement('tr'); tr.innerHTML = '<td colspan=\"6\" class=\"text-center text-slate-500\">No hay folios archivados aún.</td>'; tbody.appendChild(tr); return; } list.forEach((it, idx)=>{ const tr = document.createElement('tr'); tr.innerHTML = `
+          <td>${escapeHtml(it.archivado||'')}</td>
+          <td>${escapeHtml(it.folio||'')}</td>
+          <td>${escapeHtml(it.cliente||'')}</td>
+          <td>${escapeHtml(it.producto||'')}</td>
+          <td>${escapeHtml(it.estado||'')}</td>
+          <td class=\"whitespace-nowrap\">
+            <button data-act=\"rest\" data-i=\"${idx}\" class=\"px-2 py-1 rounded bg-emerald-600 text-white\">Restaurar</button>
+            <button data-act=\"exp\" data-i=\"${idx}\" class=\"px-2 py-1 rounded bg-sky-600 text-white\">Exportar</button>
+            <button data-act=\"del\" data-i=\"${idx}\" class=\"px-2 py-1 rounded bg-rose-600 text-white\">Eliminar</button>
+          </td>`; tbody.appendChild(tr); }); }
+    function openArchiveModal(){ renderArchive(); const m = document.getElementById('modalArchivados'); m.classList.remove('hidden'); m.classList.add('flex'); }
+    function closeArchiveModal(){ const m = document.getElementById('modalArchivados'); m.classList.add('hidden'); m.classList.remove('flex'); }
+    function archiveCurrent(){ const payload = collectData(); const item = { archivado: `${ymd()} ${timeHM()}`, folio: payload.data.folio || '', cliente: payload.data.cliente || '', producto: payload.data.producto || '', estado: payload.validacion?.estado || payload.data.estado || '', snapshot: payload }; const list = getArchiveList(); list.unshift(item); setArchiveList(list); pushAudit('Archivar', `Folio ${item.folio}`); alert('Folio archivado en el historial.'); }
+    function handleArchiveAction(e){ const t = e.target; if (!t.dataset.act) return; const list = getArchiveList(); const i = Number(t.dataset.i); const it = list[i]; if (!it) return; if (t.dataset.act==='rest'){ renderFromData(it.snapshot); closeArchiveModal(); alert('Folio restaurado.'); } else if (t.dataset.act==='exp'){ const blob = new Blob([JSON.stringify(it.snapshot, null, 2)], {type:'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${(it.folio||'folio')}_BV_FEUM_V7q_ARCHIVO.json`; a.click(); } else if (t.dataset.act==='del'){ if (!confirm('¿Eliminar este folio del historial?')) return; list.splice(i,1); setArchiveList(list); renderArchive(); } }
+
+    function showHistorial(){ openArchiveModal(); });
+    }
+
+    function markFechaHoy(id){ $(id).value = ymd(); computeAll(); }
+    function markHoraAhora(id){ $(id).value = timeHM(); computeAll(); }
+    function markDateTimeAhora(id){ $(id).value = nowLocalISO(); computeAll(); }
+
+    // ======= Eventos =======
+    function bindEvents(){
+      // Inputs recalculo
+      $$('input[data-field], textarea[data-field]').forEach(el=>{
+        el.addEventListener('input', computeAll);
+        el.addEventListener('change', computeAll);
+      });
+
+      // Botones
+      $('#btnNueva').addEventListener('click', ()=>{ if(confirm('¿Iniciar una nueva bitácora? Esto limpiará todo.')) { localStorage.removeItem(STORAGE_KEY); clearAll(); pushAudit('Nueva bitácora'); } });
+      $('#btnHistorial').addEventListener('click', showHistorial);
+      $('#btnArchivar').addEventListener('click', archiveCurrent);
+      $('#btnCloseArchivados').addEventListener('click', closeArchiveModal);
+      document.getElementById('archiveBody').addEventListener('click', handleArchiveAction);
+      // Filtros
+      ;['filtroCliente','filtroDesde','filtroHasta'].forEach(id=>{ const el = document.getElementById(id); if (el) el.addEventListener('input', renderArchive); });
+      document.getElementById('btnLimpiarFiltros').addEventListener('click', ()=>{ ['filtroCliente','filtroDesde','filtroHasta'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; }); renderArchive(); });
+      $('#btnGuardar').addEventListener('click', saveLocal);
+      $('#btnCargar').addEventListener('click', loadLocal);
+      $('#btnLimpiar').addEventListener('click', clearAll);
+      $('#btnBloquear').addEventListener('click', lockAndSign);
+      $('#btnCorregir').addEventListener('click', reopenForCorrection);
+      $('#btnExport').addEventListener('click', exportJSON);
+      $('#btnPrint').addEventListener('click', printDoc);
+
+      // Marcas rápidas
+      $('#btnMarkInicioDia').addEventListener('click', ()=> markFechaHoy('#fecha_inicio'));
+      $('#btnMarkInicioHora').addEventListener('click', ()=> markHoraAhora('#hora_inicio'));
+      if (document.getElementById('btnMarkVerif')) { $('#btnMarkVerif').addEventListener('click', ()=> markFechaHoy('#mat_verif_fecha')); }
+      $('#btnSonIni').addEventListener('click', ()=> markDateTimeAhora('#t_son_i'));
+      $('#btnSonFin').addEventListener('click', ()=> markDateTimeAhora('#t_son_f'));
+      $('#btnFinAnalisis').addEventListener('click', ()=> markDateTimeAhora('#fin_analisis'));
+      $('#btnRev').addEventListener('click', ()=> markDateTimeAhora('#rev_dt'));
+
+      // Limpiar firmas
+      $$('button[data-clear]').forEach(b=> b.addEventListener('click', ()=> clearCanvas(b.getAttribute('data-clear'))));
+
+      // Agregar equipo
+      $('#btnAddEq').addEventListener('click', ()=>{ addEquipmentRow({}); pushAudit('Agregar equipo', 'Fila añadida'); });
+
+      // Recalcular al escribir en equipos
+      $('#equipBody').addEventListener('inpu
